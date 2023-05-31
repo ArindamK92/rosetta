@@ -183,6 +183,13 @@ if (NOT DEFINED ROSETTA_PPM_OPENMP_PARALLEL
   endif ()
 endif ()
 
+#SYCL
+if (NOT DEFINED ROSETTA_PPM_SYCL)
+  find_package(IntelSYCL)
+elseif (ROSETTA_PPM_SYCL)
+  find_package(IntelSYCL REQUIRED)
+endif ()
+
 # OpenACC
 if (NOT DEFINED ROSETTA_PPM_OPENACC)
   find_package(OpenACC)
@@ -324,6 +331,13 @@ if (OpenACC_CXX_FOUND)
 endif ()
 option(ROSETTA_PPM_OPENACC "Enable OpenACC PPM" ${_openacc_enabled_default})
 
+#IntelSYCL
+set(_sycl_enabled_default OFF)
+if (IntelSYCL_FOUND)
+  set(_sycl_enabled_default ON)
+endif ()
+option(ROSETTA_PPM_SYCL "Enable SYCL PPM" ${_sycl_enabled_default})
+
 set(_mpi_enabled_default OFF)
 if (MPI_CXX_FOUND)
   set(_mpi _enabled_default ON)
@@ -423,6 +437,11 @@ if (ROSETTA_PPM_OPENMP_TARGET)
   set_target_properties(build-openmp-target PROPERTIES FOLDER "Benchmarks")
   add_dependencies(build-openmp build-openmp-target)
   add_dependencies(build build-openmp-target)
+endif ()
+if (ROSETTA_PPM_SYCL)
+  add_custom_target(build-sycl)
+  set_target_properties(build-sycl PROPERTIES FOLDER "Benchmarks")
+  add_dependencies(build build-sycl)
 endif ()
 
 add_subdirectory(benchmarks)
@@ -663,6 +682,13 @@ if (ROSETTA_PPM_OPENACC)
   )
 else ()
   list(APPEND _disabled_ppm "OpenACC")
+endif ()
+if (ROSETTA_PPM_SYCL)
+  message(
+    "  SYCL:         ${SYCL_COMPILER} ${SYCL_CXX_FLAGS} ${_extra_flags} (${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}, IntelSYCL ${SYCL_LANGUAGE_VERSION})"
+  )
+else ()
+  list(APPEND _disabled_ppm "SYCL")
 endif ()
 if (ROSETTA_PPM_MPI)
   message(
